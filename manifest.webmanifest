@@ -1,0 +1,14 @@
+{
+  "name": "La Vieja INGCO · La Isabelica",
+  "short_name": "La Vieja INGCO",
+  "description": "Tres en raya (la vieja) con temática de la ferretería INGCO La Isabelica.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141416",
+  "theme_color": "#FFD200",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/app-icon.png", "sizes": "500x500", "type": "image/png", "purpose": "any" }
+  ]
+}

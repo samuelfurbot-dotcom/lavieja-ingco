@@ -1,0 +1,42 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="r"><rect x="0" y="0" width="512" height="512" rx="96"/></clipPath>
+  </defs>
+  <g clip-path="url(#r)">
+    <rect width="512" height="512" fill="#15140f"/>
+    <!-- franja de peligro superior -->
+    <g>
+      <rect width="512" height="54" fill="#FFD200"/>
+      <g fill="#15140f">
+        <path d="M-20 0 h36 l-36 54 z"/><path d="M52 0 h36 l-36 54 z"/><path d="M124 0 h36 l-36 54 z"/>
+        <path d="M196 0 h36 l-36 54 z"/><path d="M268 0 h36 l-36 54 z"/><path d="M340 0 h36 l-36 54 z"/>
+        <path d="M412 0 h36 l-36 54 z"/><path d="M484 0 h36 l-36 54 z"/>
+      </g>
+    </g>
+    <!-- tablero tic-tac-toe -->
+    <g stroke="#FFD200" stroke-width="14" stroke-linecap="round">
+      <line x1="200" y1="120" x2="200" y2="392"/>
+      <line x1="312" y1="120" x2="312" y2="392"/>
+      <line x1="120" y1="200" x2="392" y2="200"/>
+      <line x1="120" y1="312" x2="392" y2="312"/>
+    </g>
+    <!-- llave (amarilla) arriba-izq -->
+    <g transform="translate(122,122) scale(0.78)" fill="none" stroke="#FFD200" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M39 27a14 14 0 1 1 20 0"/><line x1="49" y1="31" x2="49" y2="71"/>
+    </g>
+    <g transform="translate(122,122) scale(0.78)" fill="#FFD200" fill-rule="evenodd">
+      <path d="M49 60a13 13 0 1 0 .1 0zM49 69a4 4 0 1 1-.1 0z"/>
+    </g>
+    <!-- martillo (rojo) centro -->
+    <g transform="translate(212,212) scale(0.9)" fill="#FF4133">
+      <path d="M24 22h42a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H24a9 9 0 0 1 0-18z"/>
+      <path d="M66 19h7a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3h-7z"/>
+      <rect x="41" y="40" width="9" height="46" rx="4"/>
+    </g>
+    <!-- INGCO -->
+    <g transform="translate(256,452)">
+      <rect x="-118" y="-30" width="236" height="56" rx="12" fill="#FFD200"/>
+      <text x="0" y="9" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-style="italic" font-size="44" fill="#15140f">INGCO</text>
+    </g>
+  </g>
+</svg>

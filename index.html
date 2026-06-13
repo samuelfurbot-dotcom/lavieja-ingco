@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c0a08">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>La Vieja INGCO · La Isabelica</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-icon.png">
+<style>
+  :root{
+    --gold:#FFB200;
+    --gold-lt:#FFD56E;
+    --gold-dk:#9A6310;
+    --ember:#FF6A00;
+    --blood:#E2231A;
+    --steel:#e9eef4;
+    --ink:#0c0a08;
+    --txt:#f4ece0;
+    --muted:#b3a892;
+    --p1:#e9eef4;
+    --p2:#FFB12E;
+    --shadow:0 14px 40px rgba(0,0,0,.6);
+    --hazard: repeating-linear-gradient(45deg,#0c0a08 0 13px,#FFB200 13px 26px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--txt);
+    overflow:hidden;
+    user-select:none; -webkit-user-select:none;
+    touch-action:manipulation;
+    background:
+      radial-gradient(135% 100% at 50% 120%, rgba(255,110,0,.34), rgba(255,50,0,0) 55%),
+      radial-gradient(90% 60% at 82% 4%, rgba(120,80,40,.30), transparent 60%),
+      radial-gradient(70% 50% at 12% 8%, rgba(90,60,30,.22), transparent 60%),
+      linear-gradient(180deg,#0f0b08 0%, #0a0706 55%, #0d0907 100%);
+  }
+  .embers{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
+  .ember{position:absolute; bottom:-12px; border-radius:50%;
+    background:radial-gradient(circle,#ffe2a0 0%,#ff7a00 55%,rgba(255,90,0,0) 72%);
+    opacity:0; animation:rise linear infinite;}
+  @keyframes rise{
+    0%{transform:translateY(0) translateX(0) scale(1); opacity:0;}
+    8%{opacity:1;}
+    85%{opacity:.85;}
+    100%{transform:translateY(-108vh) translateX(var(--dx)) scale(.3); opacity:0;}
+  }
+  .grain{position:fixed; inset:0; pointer-events:none; z-index:6; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  .app{
+    position:fixed; inset:0; z-index:1;
+    display:flex; flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 6px) 14px calc(env(safe-area-inset-bottom) + 10px);
+    max-width:520px; margin:0 auto;
+  }
+  .hazard{height:9px; width:100%; background:var(--hazard); border-radius:5px; flex:0 0 auto;
+    box-shadow:0 2px 10px #000a, inset 0 0 8px #0008; opacity:.92;}
+
+  .brand{display:flex; align-items:center; justify-content:center; gap:10px; margin:12px 0 2px;}
+  .logo{
+    font-family:"Arial Black",Impact,Arial,sans-serif; font-weight:900; font-style:italic;
+    font-size:30px; letter-spacing:1px;
+    background:linear-gradient(180deg,#fff0c4 0%,#ffc54e 46%,#b8730a 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 12px rgba(255,150,0,.45));
+  }
+  .loc{font-weight:800; font-size:11px; letter-spacing:3px; color:var(--muted); text-transform:uppercase;
+    border-left:2px solid #6b5a3a; padding-left:9px;}
+
+  .screen{flex:1 1 auto; display:none; flex-direction:column; min-height:0;}
+  .screen.active{display:flex; animation:fade .28s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  .center{flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; min-height:0;}
+
+  .title{text-align:center; line-height:.88; margin:4px 0;}
+  .title .big{
+    display:block; font-family:"Arial Black",Impact,Arial,sans-serif; font-weight:900; font-style:italic;
+    font-size:clamp(50px,16vw,82px); letter-spacing:1px;
+    background:linear-gradient(180deg,#fff7e2 0%,#ffd472 30%,#c8851f 52%,#ffd06b 68%,#915c0e 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 3px 0 rgba(0,0,0,.55)) drop-shadow(0 0 22px rgba(255,140,0,.4));
+  }
+  .title .sub{display:block; margin-top:10px; font-weight:800; font-size:12px; letter-spacing:6px; color:var(--muted); text-transform:uppercase;}
+  .tag{font-size:13px; color:var(--muted); text-align:center; max-width:300px; line-height:1.45;}
+
+  .btn{
+    appearance:none; cursor:pointer; font-family:inherit;
+    font-weight:900; text-transform:uppercase; letter-spacing:1px;
+    color:#1c1306; font-size:17px; width:100%; max-width:330px;
+    padding:16px 22px; border-radius:13px;
+    background:linear-gradient(180deg,#ffd877 0%,#f5a623 55%,#c47d10 100%);
+    border:1px solid #7a4f08;
+    box-shadow:0 5px 0 #784c08, 0 10px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .06s ease, box-shadow .06s ease, filter .15s;
+  }
+  .btn:hover{filter:brightness(1.06);}
+  .btn:active{transform:translateY(3px); box-shadow:0 2px 0 #784c08, 0 6px 16px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5);}
+  .btn.ghost{background:linear-gradient(180deg,#2c2722,#1b1713); color:var(--txt); border:1px solid #4a4036; box-shadow:0 5px 0 #120f0c, 0 10px 24px rgba(0,0,0,.5);}
+  .btn.ghost:active{box-shadow:0 2px 0 #120f0c, 0 6px 16px rgba(0,0,0,.5);}
+  .btn.red{background:linear-gradient(180deg,#ff5246,#c2150d); color:#fff; border:1px solid #7c0f09; box-shadow:0 5px 0 #730e08, 0 10px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn.sm{padding:12px 14px; font-size:14px;}
+  .stack{display:flex; flex-direction:column; gap:12px; align-items:center; width:100%;}
+
+  .section-title{font-weight:900; text-transform:uppercase; letter-spacing:3px; font-size:14px;
+    background:linear-gradient(180deg,#ffe6a8,#ffb12e); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center;}
+  .hint{font-size:12px; color:var(--muted); text-align:center;}
+
+  .opts{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; width:100%;}
+  .chip{
+    flex:1 1 130px; max-width:170px; min-height:66px;
+    background:linear-gradient(180deg,#262019,#171210); border:2px solid #3a3128; border-radius:13px;
+    color:var(--txt); font-weight:800; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    padding:10px; transition:.12s; font-size:15px;
+  }
+  .chip .em{font-size:22px; line-height:1;}
+  .chip small{font-weight:600; color:var(--muted); font-size:11px;}
+  .chip.sel{border-color:var(--gold); background:linear-gradient(180deg,#3a2e15,#241b0d); box-shadow:0 0 16px rgba(255,140,0,.35), inset 0 0 0 1px rgba(255,180,40,.2);}
+  .chip:active{transform:scale(.97);}
+
+  .tools-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:11px; width:100%; max-width:380px;}
+  .tool-btn{
+    aspect-ratio:1/1; cursor:pointer; padding:7px;
+    background:radial-gradient(120% 120% at 50% 22%, #2b2319, #130e0a 78%);
+    border:2px solid #3d3228; border-radius:15px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    transition:.12s; box-shadow:inset 0 1px 0 #ffffff12, inset 0 -6px 14px #000a;
+  }
+  .tool-btn span{font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.3px; text-align:center; line-height:1.1;}
+  .tool-btn:active{transform:scale(.95);}
+  .tool-btn:disabled{opacity:.25; filter:grayscale(.7); cursor:not-allowed;}
+  .tool-btn.sel{border-color:var(--gold); box-shadow:0 0 16px rgba(255,150,0,.4), inset 0 -6px 14px #000a;}
+  .pickwho{font-weight:900; text-align:center; font-size:17px;}
+  .pickwho b{color:var(--gold);}
+
+  /* ---- piezas (imágenes reales) ---- */
+  .piece{display:block; object-fit:contain; width:100%; height:100%; pointer-events:none; -webkit-user-drag:none;}
+  .tool-btn .piece{width:80%; height:60%;}
+  .pcard .ic .piece{width:100%; height:100%;}
+  .result .ric .piece{width:100%; height:100%;}
+  .cell .piece{width:90%; height:90%; animation:pop .24s cubic-bezier(.2,1.6,.4,1);}
+  @keyframes pop{from{transform:scale(.2); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .cell.p1 .piece{filter:drop-shadow(0 0 7px rgba(190,215,255,.45)) drop-shadow(0 3px 5px rgba(0,0,0,.6));}
+  .cell.p2 .piece{filter:drop-shadow(0 0 11px rgba(255,160,20,.6)) drop-shadow(0 3px 5px rgba(0,0,0,.6));}
+
+  /* ---- juego ---- */
+  .hud{display:flex; align-items:stretch; gap:8px; width:100%; margin-bottom:6px;}
+  .pcard{
+    flex:1 1 0; border:2px solid #3a3128; border-radius:13px;
+    padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:3px; transition:.15s;
+    background:linear-gradient(180deg,#231d16,#15100c);
+  }
+  .pcard.turn{border-color:var(--gold); box-shadow:0 0 18px rgba(255,150,0,.4); transform:translateY(-2px);}
+  .pcard .ic{width:40px; height:40px;}
+  .pcard .nm{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--muted);}
+  .pcard .sc{font-size:23px; font-weight:900; line-height:1;}
+  .draws{align-self:center; text-align:center; font-size:10px; color:var(--muted); font-weight:800; min-width:46px; text-transform:uppercase; letter-spacing:1px;}
+  .draws b{display:block; font-size:19px; color:var(--txt); margin-top:2px;}
+
+  .turnline{text-align:center; font-weight:800; font-size:13px; color:var(--muted); margin:2px 0 8px; min-height:18px;}
+  .turnline b{color:var(--gold);}
+
+  .board-wrap{flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:0;}
+  .board{
+    width:min(92vw, 60vh, 430px); aspect-ratio:1/1;
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    gap:8px; padding:11px;
+    background:
+      radial-gradient(120% 120% at 50% 0%, rgba(255,120,0,.22), transparent 55%),
+      linear-gradient(160deg,#241b14,#130e0a);
+    border-radius:16px; border:3px solid #3c2e21;
+    box-shadow:0 0 30px rgba(255,90,0,.28), var(--shadow), inset 0 0 60px #000c;
+    position:relative;
+  }
+  .cell{
+    background:radial-gradient(120% 120% at 50% 22%, #2c241c, #140f0a 76%);
+    border-radius:10px; cursor:pointer; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(120,90,50,.35);
+    box-shadow:inset 0 2px 0 #ffffff10, inset 0 -5px 12px #000b;
+    transition:.1s;
+  }
+  .cell::before,.cell::after{content:""; position:absolute; width:5px; height:5px; border-radius:50%; background:#0008; box-shadow:inset 0 1px 1px #000, 0 1px 0 #ffffff14; z-index:1;}
+  .cell::before{top:7px; left:7px;}
+  .cell::after{bottom:7px; right:7px;}
+  .cell:active{transform:scale(.97);}
+  .cell.win{background:radial-gradient(circle,#5a3a12,#2a1c0c); box-shadow:0 0 0 2px var(--gold), 0 0 26px rgba(255,140,0,.7), inset 0 0 26px rgba(255,150,0,.45); animation:winpulse 1s ease infinite alternate;}
+  @keyframes winpulse{from{box-shadow:0 0 0 2px var(--gold),0 0 18px rgba(255,140,0,.5),inset 0 0 20px rgba(255,150,0,.35);} to{box-shadow:0 0 0 2px var(--gold-lt),0 0 30px rgba(255,170,30,.85),inset 0 0 30px rgba(255,170,30,.55);}}
+
+  .game-actions{display:flex; gap:10px; width:100%; margin-top:10px;}
+  .game-actions .btn{max-width:none;}
+
+  .overlay{position:fixed; inset:0; background:#08060599; backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; padding:20px; z-index:30;}
+  .overlay.show{display:flex; animation:fade .2s ease;}
+  .result{
+    background:linear-gradient(165deg,#221b13,#120d0a); border:2px solid #4a3a26; border-top:6px solid var(--gold);
+    border-radius:20px; padding:26px 22px; text-align:center; width:100%; max-width:330px; box-shadow:var(--shadow), 0 0 40px rgba(255,120,0,.25);
+  }
+  .result .rtitle{font-family:"Arial Black",Impact,Arial; font-weight:900; font-style:italic; font-size:30px; margin:0 0 4px;
+    background:linear-gradient(180deg,#fff3d6,#ffc24d 55%,#b8730a); -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 2px 6px rgba(255,140,0,.3));}
+  .result .rsub{color:var(--muted); font-weight:700; margin-bottom:16px; font-size:14px;}
+  .result .ric{width:84px; height:84px; margin:0 auto 8px; filter:drop-shadow(0 0 12px rgba(255,150,0,.5));}
+
+  .topbar{position:absolute; top:calc(env(safe-area-inset-top) + 8px); right:14px; display:flex; gap:8px; z-index:20;}
+  .iconbtn{width:42px; height:42px; border-radius:11px; border:2px solid #4a4036; background:#1b1713cc; color:var(--txt); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px;}
+  .iconbtn:active{transform:scale(.94);}
+
+  .footer{flex:0 0 auto; text-align:center; font-size:11px; color:#776a55; padding-top:8px;}
+  .footer a{color:var(--gold); text-decoration:none; font-weight:700;}
+
+  .confetti{position:fixed; top:-20px; width:10px; height:10px; z-index:25; pointer-events:none; border-radius:2px; box-shadow:0 0 8px rgba(255,140,0,.6);}
+  @keyframes fall{to{transform:translateY(112vh) rotate(680deg);}}
+
+  @media (max-height:660px){ .title .sub{display:none;} .brand{margin:6px 0 0;} }
+</style>
+</head>
+<body>
+<div class="embers" id="embers"></div>
+<div class="grain"></div>
+
+<div class="app">
+  <div class="hazard"></div>
+
+  <div class="brand">
+    <span class="logo">INGCO</span>
+    <span class="loc">La&nbsp;Isabelica</span>
+  </div>
+
+  <div class="topbar">
+    <button class="iconbtn" id="muteBtn" title="Sonido">🔊</button>
+  </div>
+
+  <!-- TÍTULO -->
+  <section class="screen active" id="s-title">
+    <div class="center">
+      <div class="title">
+        <span class="big">LA VIEJA</span>
+        <span class="sub">Edición Ferretería</span>
+      </div>
+      <p class="tag">El tres en raya más bravo de la ciudad, con las herramientas de tu ferretería INGCO La Isabelica. Usa tu estrategia… <b style="color:var(--gold)">¡gana la partida!</b></p>
+      <div class="stack">
+        <button class="btn" id="btnPlay">▶ Jugar</button>
+        <a class="btn" id="btnDownload" style="width:100%;max-width:330px;text-decoration:none;text-align:center;display:block;background:linear-gradient(180deg,#5ad17a,#1f9e4d 60%,#0f6b32);border:1px solid #0c5a2a;box-shadow:0 5px 0 #0a4d24,0 10px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3);" href="La-Vieja-INGCO.apk" download>📥 Descargar app (APK)</a>
+        <button class="btn ghost sm" id="btnHow" style="width:100%;max-width:330px;">¿Cómo se juega?</button>
+        <a class="btn red sm" style="width:100%;max-width:330px;text-decoration:none;text-align:center;" href="https://www.instagram.com/tiendaingco/" target="_blank" rel="noopener">📷 Síguenos · @tiendaingco</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODO -->
+  <section class="screen" id="s-mode">
+    <div class="center">
+      <div class="section-title">Elige el modo</div>
+      <div class="opts">
+        <button class="chip" data-mode="cpu"><span class="em">🤖</span>1 Jugador<small>vs Máquina</small></button>
+        <button class="chip" data-mode="pvp"><span class="em">👬</span>2 Jugadores<small>mano a mano</small></button>
+      </div>
+      <div id="diffBox" style="display:none; width:100%;">
+        <div class="section-title" style="margin-top:14px;">Dificultad</div>
+        <div class="opts">
+          <button class="chip" data-diff="easy"><span class="em">😀</span>Fácil<small>relajado</small></button>
+          <button class="chip" data-diff="medium"><span class="em">😤</span>Difícil<small>se pone bueno</small></button>
+          <button class="chip" data-diff="hard"><span class="em">🔥</span>Imposible<small>no pierde</small></button>
+        </div>
+      </div>
+      <button class="btn" id="btnToPick" style="margin-top:8px;" disabled>Continuar ➜</button>
+      <button class="btn ghost sm" id="btnBackTitle" style="width:auto;">‹ Atrás</button>
+    </div>
+  </section>
+
+  <!-- ELEGIR HERRAMIENTA -->
+  <section class="screen" id="s-pick">
+    <div class="center">
+      <div class="pickwho" id="pickWho">Jugador 1, elige tu herramienta</div>
+      <div class="hint" id="pickHint">Toca la herramienta que será tu ficha</div>
+      <div class="tools-grid" id="toolsGrid"></div>
+      <button class="btn ghost sm" id="btnBackMode" style="width:auto;">‹ Atrás</button>
+    </div>
+  </section>
+
+  <!-- JUEGO -->
+  <section class="screen" id="s-game">
+    <div class="hud">
+      <div class="pcard" id="card1">
+        <div class="ic" id="ic1"></div>
+        <div class="nm" id="nm1">Jugador 1</div>
+        <div class="sc" id="sc1" style="color:var(--p1)">0</div>
+      </div>
+      <div class="draws">Vieja<b id="scd">0</b></div>
+      <div class="pcard" id="card2">
+        <div class="ic" id="ic2"></div>
+        <div class="nm" id="nm2">Jugador 2</div>
+        <div class="sc" id="sc2" style="color:var(--p2)">0</div>
+      </div>
+    </div>
+    <div class="turnline" id="turnLine"></div>
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div class="game-actions">
+      <button class="btn ghost" id="btnMenu">Menú</button>
+      <button class="btn" id="btnRematch">Revancha</button>
+    </div>
+  </section>
+
+  <div class="footer">INGCO La Isabelica · Valencia, Carabobo &nbsp;·&nbsp; <a href="https://www.instagram.com/tiendaingco/" target="_blank" rel="noopener">@tiendaingco</a></div>
+</div>
+
+<div class="overlay" id="ovHow">
+  <div class="result">
+    <div class="rtitle" style="font-size:23px;">CÓMO JUGAR</div>
+    <p style="color:var(--txt); font-size:14px; text-align:left; line-height:1.55;">
+      • El tablero tiene <b>9 casillas</b>.<br>
+      • Cada quien usa su <b>herramienta INGCO</b> como ficha.<br>
+      • Por turnos, colocas tu herramienta en una casilla vacía.<br>
+      • Gana quien forme una <b>línea de 3</b> (horizontal, vertical o diagonal).<br>
+      • Si se llena sin línea: <b>¡quedó la vieja!</b> (empate).
+    </p>
+    <button class="btn" id="btnCloseHow">¡Entendido!</button>
+  </div>
+</div>
+
+<div class="overlay" id="ovResult">
+  <div class="result">
+    <div class="ric" id="resIc"></div>
+    <div class="rtitle" id="resTitle">¡GANÓ!</div>
+    <div class="rsub" id="resSub"></div>
+    <div class="stack">
+      <button class="btn" id="btnRematch2">Revancha</button>
+      <button class="btn ghost sm" id="btnMenu2" style="width:100%;max-width:330px;">Menú principal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   LA VIEJA INGCO · La Isabelica  —  tres en raya temático
+   Fichas: herramientas reales INGCO (imágenes) · 100% offline
+   ============================================================ */
+
+/* ---------- Catálogo de fichas (herramientas reales) ---------- */
+const TOOLS = [
+  {id:'taladro',       name:'Taladro',        img:'taladro.png'},
+  {id:'amoladora',     name:'Amoladora',      img:'amoladora.png'},
+  {id:'llave_impacto', name:'Llave impacto',  img:'llave-impacto.png'},
+  {id:'pistola',       name:'Pistola',        img:'pistola.png'},
+  {id:'disco_sierra',  name:'Disco sierra',   img:'disco-sierra.png'},
+  {id:'bateria',       name:'Batería',        img:'bateria.png'},
+  {id:'llaves',        name:'Llaves',         img:'llaves.png'},
+];
+const toolById = id => TOOLS.find(t=>t.id===id);
+
+/* devuelve el HTML de la ficha (imagen real) */
+function pieceHTML(id){
+  const t = toolById(id);
+  return '<img class="piece" src="icons/pieces/'+t.img+'" alt="'+t.name+'" draggable="false">';
+}
+
+/* ---------- Estado ---------- */
+const S = {
+  mode:null, diff:null,
+  pieces:{p1:null, p2:null},
+  pickTurn:'p1',
+  board:Array(9).fill(null),
+  current:'p1', starter:'p1', over:false,
+  scores:{p1:0,p2:0,d:0},
+  muted:false,
+};
+
+const $ = s => document.querySelector(s);
+const screens = ['s-title','s-mode','s-pick','s-game'];
+function show(id){ screens.forEach(s=>$('#'+s).classList.toggle('active', s===id)); }
+
+/* ---------- Sonido sintetizado ---------- */
+let actx=null;
+function ac(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+function beep(freq, dur, type, vol, slideTo){
+  if(S.muted) return; const c=ac(); if(!c) return;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type||'square'; o.frequency.value=freq;
+  if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, c.currentTime+dur);
+  g.gain.setValueAtTime(vol||0.12, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+dur);
+  o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime+dur);
+}
+function noise(dur,vol){
+  if(S.muted) return; const c=ac(); if(!c) return;
+  const n=c.sampleRate*dur, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+  const s=c.createBufferSource(); s.buffer=b; const g=c.createGain();
+  g.gain.value=vol||0.2; s.connect(g).connect(c.destination); s.start();
+}
+function sfxPlace(toolId){
+  vibrate(12);
+  if(toolId==='llaves'||toolId==='bateria'){ noise(0.09,0.3); beep(120,0.08,'square',0.1,70); }
+  else if(toolId==='taladro'||toolId==='amoladora'||toolId==='disco_sierra'||toolId==='llave_impacto'){ beep(170,0.18,'sawtooth',0.09,380); }
+  else { beep(430,0.07,'square',0.08,640); noise(0.05,0.12); }
+}
+function sfxWin(){ vibrate([20,40,20,40,60]); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.16,'square',0.13),i*110)); }
+function sfxDraw(){ vibrate(40); beep(300,0.2,'triangle',0.12,150); }
+function sfxClick(){ beep(700,0.04,'square',0.06); }
+function vibrate(p){ if(navigator.vibrate) try{navigator.vibrate(p);}catch(e){} }
+
+/* ---------- Brasas ---------- */
+function spawnEmbers(n){
+  const c=document.getElementById('embers'); if(!c) return;
+  for(let i=0;i<n;i++){
+    const e=document.createElement('div'); e.className='ember';
+    const size=3+Math.random()*6;
+    e.style.left=(Math.random()*100)+'vw';
+    e.style.width=e.style.height=size+'px';
+    e.style.setProperty('--dx',(Math.random()*70-35)+'px');
+    const dur=6+Math.random()*9;
+    e.style.animationDuration=dur+'s';
+    e.style.animationDelay=(-Math.random()*dur)+'s';
+    c.appendChild(e);
+  }
+}
+
+/* ---------- Preferencias ---------- */
+function loadPrefs(){ try{ S.muted=localStorage.getItem('ingco_mute')==='1'; }catch(e){} $('#muteBtn').textContent=S.muted?'🔇':'🔊'; }
+function saveMute(){ try{ localStorage.setItem('ingco_mute', S.muted?'1':'0'); }catch(e){} }
+
+/* ============================================================ FLUJO ============================================================ */
+$('#btnPlay').onclick = ()=>{ ac(); sfxClick(); resetModeScreen(); show('s-mode'); };
+$('#btnHow').onclick  = ()=>{ sfxClick(); $('#ovHow').classList.add('show'); };
+$('#btnCloseHow').onclick = ()=>{ sfxClick(); $('#ovHow').classList.remove('show'); };
+$('#btnBackTitle').onclick = ()=>{ sfxClick(); show('s-title'); };
+
+function resetModeScreen(){
+  S.mode=null; S.diff=null;
+  document.querySelectorAll('[data-mode]').forEach(c=>c.classList.remove('sel'));
+  document.querySelectorAll('[data-diff]').forEach(c=>c.classList.remove('sel'));
+  $('#diffBox').style.display='none'; $('#btnToPick').disabled=true;
+}
+document.querySelectorAll('[data-mode]').forEach(chip=>{
+  chip.onclick=()=>{
+    sfxClick(); S.mode=chip.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach(c=>c.classList.toggle('sel',c===chip));
+    if(S.mode==='cpu'){ $('#diffBox').style.display='block'; $('#btnToPick').disabled=!S.diff; }
+    else { $('#diffBox').style.display='none'; S.diff=null; $('#btnToPick').disabled=false; }
+  };
+});
+document.querySelectorAll('[data-diff]').forEach(chip=>{
+  chip.onclick=()=>{
+    sfxClick(); S.diff=chip.dataset.diff;
+    document.querySelectorAll('[data-diff]').forEach(c=>c.classList.toggle('sel',c===chip));
+    $('#btnToPick').disabled=false;
+  };
+});
+$('#btnToPick').onclick = ()=>{ sfxClick(); startPick(); };
+
+function buildToolsGrid(){
+  const g=$('#toolsGrid'); g.innerHTML='';
+  TOOLS.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='tool-btn'; b.dataset.id=t.id;
+    b.innerHTML = pieceHTML(t.id)+'<span>'+t.name+'</span>';
+    b.onclick=()=>pickTool(t.id, b);
+    g.appendChild(b);
+  });
+}
+function startPick(){ S.pieces={p1:null,p2:null}; S.pickTurn='p1'; buildToolsGrid(); refreshPickScreen(); show('s-pick'); }
+function refreshPickScreen(){
+  const who=S.pickTurn;
+  document.querySelectorAll('.tool-btn').forEach(b=>{ b.disabled=(S.pieces.p1===b.dataset.id); });
+  if(S.mode==='pvp'){ $('#pickWho').innerHTML = who==='p1' ? 'Jugador 1, elige tu herramienta' : '<b>Jugador 2</b>, elige tu herramienta'; }
+  else { $('#pickWho').innerHTML = 'Elige <b>tu</b> herramienta'; }
+  $('#pickHint').textContent = who==='p2' ? 'Distinta a la del Jugador 1' : 'Toca la herramienta que será tu ficha';
+}
+function pickTool(id, btn){
+  sfxClick();
+  if(S.pickTurn==='p1'){
+    S.pieces.p1=id;
+    if(S.mode==='pvp'){ S.pickTurn='p2'; refreshPickScreen(); }
+    else { const opts=TOOLS.filter(t=>t.id!==id); S.pieces.p2=opts[Math.floor(Math.random()*opts.length)].id; beginGame(); }
+  }else{
+    if(id===S.pieces.p1) return;
+    S.pieces.p2=id; beginGame();
+  }
+}
+$('#btnBackMode').onclick = ()=>{ sfxClick(); show('s-mode'); };
+
+/* ============================================================ JUEGO ============================================================ */
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function beginGame(){ S.scores={p1:0,p2:0,d:0}; S.starter='p1'; setupHUD(); newRound(true); show('s-game'); }
+function setupHUD(){
+  $('#ic1').innerHTML=pieceHTML(S.pieces.p1);
+  $('#ic2').innerHTML=pieceHTML(S.pieces.p2);
+  $('#nm1').textContent='Jugador 1';
+  $('#nm2').textContent = S.mode==='cpu' ? 'Máquina' : 'Jugador 2';
+  updateScores();
+}
+function updateScores(){ $('#sc1').textContent=S.scores.p1; $('#sc2').textContent=S.scores.p2; $('#scd').textContent=S.scores.d; }
+function newRound(keepStarter){
+  S.board=Array(9).fill(null); S.over=false;
+  if(!keepStarter){ S.starter=S.starter==='p1'?'p2':'p1'; }
+  S.current=S.starter; renderBoard(); updateTurnLine(); maybeCpu();
+}
+function renderBoard(){
+  const b=$('#board'); b.innerHTML='';
+  for(let i=0;i<9;i++){
+    const c=document.createElement('button'); c.className='cell'; c.dataset.i=i;
+    const v=S.board[i]; if(v){ c.classList.add(v); c.innerHTML=pieceHTML(S.pieces[v]); }
+    c.onclick=()=>onCell(i); b.appendChild(c);
+  }
+}
+function updateTurnLine(){
+  $('#card1').classList.toggle('turn', S.current==='p1' && !S.over);
+  $('#card2').classList.toggle('turn', S.current==='p2' && !S.over);
+  if(S.over){ $('#turnLine').innerHTML=''; return; }
+  const who = S.current==='p1' ? $('#nm1').textContent : $('#nm2').textContent;
+  const isCpuTurn = S.mode==='cpu' && S.current==='p2';
+  $('#turnLine').innerHTML = isCpuTurn ? 'La máquina está pensando…' : ('Turno de <b>'+who+'</b>');
+}
+function onCell(i){
+  if(S.over || S.board[i]) return;
+  if(S.mode==='cpu' && S.current==='p2') return;
+  place(i, S.current);
+}
+function place(i, who){
+  S.board[i]=who;
+  const cell=$('#board').children[i]; cell.classList.add(who); cell.innerHTML=pieceHTML(S.pieces[who]);
+  sfxPlace(S.pieces[who]);
+  const res=evaluate(S.board);
+  if(res.winner || res.draw){ endRound(res); return; }
+  S.current = who==='p1'?'p2':'p1'; updateTurnLine(); maybeCpu();
+}
+function maybeCpu(){
+  if(S.mode==='cpu' && S.current==='p2' && !S.over){
+    updateTurnLine();
+    setTimeout(()=>{ if(S.over) return; const m=cpuMove(); if(m!=null) place(m,'p2'); }, 430);
+  }
+}
+function evaluate(bd){
+  for(const ln of LINES){ const [a,b,c]=ln; if(bd[a] && bd[a]===bd[b] && bd[a]===bd[c]) return {winner:bd[a], line:ln, draw:false}; }
+  if(bd.every(v=>v)) return {winner:null, line:null, draw:true};
+  return {winner:null, line:null, draw:false};
+}
+function endRound(res){
+  S.over=true;
+  if(res.winner){ S.scores[res.winner]++; res.line.forEach(i=>$('#board').children[i].classList.add('win')); sfxWin(); confetti(); }
+  else { S.scores.d++; sfxDraw(); }
+  updateScores(); updateTurnLine();
+  setTimeout(()=>showResult(res), res.winner?700:450);
+}
+function showResult(res){
+  const ov=$('#ovResult');
+  if(res.draw){
+    $('#resIc').innerHTML='<img class="piece" src="icons/app-icon.png" alt="INGCO">';
+    $('#resTitle').textContent='¡QUEDÓ LA VIEJA!'; $('#resSub').textContent='Empate. ¡Nadie aflojó!';
+  }else{
+    const w=res.winner;
+    $('#resIc').innerHTML=pieceHTML(S.pieces[w]);
+    if(S.mode==='cpu'){
+      if(w==='p1'){ $('#resTitle').textContent='¡GANASTE! 🏆'; $('#resSub').textContent='¡Le diste con todo a la máquina!'; }
+      else { $('#resTitle').textContent='GANÓ LA MÁQUINA'; $('#resSub').textContent='¡Dale revancha, tú puedes!'; }
+    }else{
+      $('#resTitle').textContent = (w==='p1'?'¡GANÓ JUGADOR 1!':'¡GANÓ JUGADOR 2!');
+      $('#resSub').textContent='Buena jugada. ¿Revancha?';
+    }
+  }
+  ov.classList.add('show');
+}
+
+$('#btnRematch').onclick = ()=>{ sfxClick(); newRound(false); };
+$('#btnRematch2').onclick= ()=>{ sfxClick(); $('#ovResult').classList.remove('show'); newRound(false); };
+$('#btnMenu').onclick = ()=>{ sfxClick(); show('s-title'); };
+$('#btnMenu2').onclick= ()=>{ sfxClick(); $('#ovResult').classList.remove('show'); show('s-title'); };
+
+/* ============================================================ IA ============================================================ */
+function cpuMove(){
+  const empties = S.board.map((v,i)=>v?null:i).filter(v=>v!=null);
+  if(!empties.length) return null;
+  if(S.diff==='easy'){ const win=findImmediate('p2'); if(win!=null && Math.random()<0.5) return win; return empties[Math.floor(Math.random()*empties.length)]; }
+  if(S.diff==='medium'){ if(Math.random()<0.22) return empties[Math.floor(Math.random()*empties.length)]; return bestMove(); }
+  return bestMove();
+}
+function findImmediate(who){
+  for(const i of S.board.map((v,idx)=>v?null:idx).filter(v=>v!=null)){
+    const bd=S.board.slice(); bd[i]=who; if(evaluate(bd).winner===who) return i;
+  }
+  return null;
+}
+function bestMove(){
+  let best=-Infinity, move=null;
+  for(let i=0;i<9;i++){ if(S.board[i]) continue; const bd=S.board.slice(); bd[i]='p2'; const score=minimax(bd,0,false); if(score>best){ best=score; move=i; } }
+  return move;
+}
+function minimax(bd, depth, maxing){
+  const r=evaluate(bd);
+  if(r.winner==='p2') return 10-depth;
+  if(r.winner==='p1') return depth-10;
+  if(r.draw) return 0;
+  if(maxing){ let best=-Infinity; for(let i=0;i<9;i++){ if(bd[i])continue; bd[i]='p2'; best=Math.max(best,minimax(bd,depth+1,false)); bd[i]=null; } return best; }
+  else { let best=Infinity; for(let i=0;i<9;i++){ if(bd[i])continue; bd[i]='p1'; best=Math.min(best,minimax(bd,depth+1,true)); bd[i]=null; } return best; }
+}
+
+/* ---------- Chispas al ganar ---------- */
+function confetti(){
+  const colors=['#FFB200','#FF6A00','#FFD86E','#E2231A'];
+  for(let i=0;i<28;i++){
+    const d=document.createElement('div'); d.className='confetti';
+    d.style.left=Math.random()*100+'vw'; d.style.background=colors[i%colors.length];
+    const dur=1.4+Math.random()*1.2;
+    d.style.animation='fall '+dur+'s linear forwards'; d.style.transform='rotate('+(Math.random()*360)+'deg)';
+    document.body.appendChild(d); setTimeout(()=>d.remove(), dur*1000+50);
+  }
+}
+
+$('#muteBtn').onclick = ()=>{ S.muted=!S.muted; saveMute(); $('#muteBtn').textContent=S.muted?'🔇':'🔊'; if(!S.muted) sfxClick(); };
+document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
+
+/* arranque */
+spawnEmbers(28);
+loadPrefs();
+show('s-title');
+/* el botón de descarga solo aplica a la versión web (se oculta dentro de la app) */
+if(window.Capacitor){ var _bd=document.getElementById('btnDownload'); if(_bd) _bd.style.display='none'; }
+</script>
+</body>
+</html>
